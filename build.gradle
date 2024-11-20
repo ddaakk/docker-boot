@@ -17,11 +17,6 @@ java {
     }
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 bootJar {
     enabled = false
 }
