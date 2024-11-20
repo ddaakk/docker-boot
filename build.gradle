@@ -1,0 +1,68 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id "com.vanniktech.maven.publish" version "0.28.0"
+    id 'signing'
+    id 'java-library'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'io.github.ddaakk'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    implementation 'com.github.docker-java:docker-java:3.4.0'
+    implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.4.0'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates("io.github.ddaakk", "docker-boot", "0.1.0")
+
+    pom {
+        name = 'docker-boot'
+        description = 'SpringBoot Docker Manager'
+        url = '<https://github.com/ddaakk/excel-utils>'
+
+    }
+}
