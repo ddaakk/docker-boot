@@ -62,7 +62,27 @@ mavenPublishing {
     pom {
         name = 'docker-boot'
         description = 'SpringBoot Docker Manager'
-        url = '<https://github.com/ddaakk/excel-utils>'
+        url = '<https://github.com/ddaakk/docker-boots>'
 
+        licenses {
+            license {
+                name = 'Apache License'
+                url = '<https://github.com/dami325/excel-utils/blob/master/LICENSE>'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'ddaakk'
+                name = 'Sang Woo Kang'
+                email = 'sangwoo98.kang@gmail.com'
+            }
+        }
+
+        scm {
+            connection = 'scm:git:github.com/ddaakk/docker-boot.git'
+            developerConnection = 'scm:git:ssh://github.com:ddaakk/docker-boot.git'
+            url = '<https://github.com/ddaakk/docker-boot>'
+        }
     }
 }
