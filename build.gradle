@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'io.github.ddaakk'
-version = '0.1.0'
+version = '0.2.0'
 
 java {
     toolchain {
@@ -52,7 +52,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates("io.github.ddaakk", "docker-boot", "0.1.0")
+    coordinates("io.github.ddaakk", "docker-boot", "0.2.0")
 
     pom {
         name = 'docker-boot'
