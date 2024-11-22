@@ -1,30 +1,68 @@
 # Docker Boot
 
-[라이브러리 다운로드](https://central.sonatype.com/artifact/io.github.ddaakk/docker-boot)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.ddaakk/docker-boot.svg)](https://central.sonatype.com/artifact/io.github.ddaakk/docker-boot)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Docker Boot는 Spring Boot 애플리케이션에서 Docker 컨테이너를 쉽게 관리할 수 있게 해주는 라이브러리입니다.   
-이 라이브러리를 사용하면 설정 파일만으로 Docker 컨테이너의 생명주기를 Spring 애플리케이션과 통합하여 관리할 수 있습니다.
+Docker Boot provides seamless integration between Docker containers and Spring Boot applications. It allows you to manage Docker container lifecycles through Spring configuration and programmatic controls.
 
-## 특징
-- Spring Boot 애플리케이션 시작/종료 시 자동으로 컨테이너 시작/종료
-- YAML/Properties 파일을 통한 간단한 Docker 컨테이너 설정
-- 다중 컨테이너 지원
-- 자동 이미지 다운로드
-- 포트 매핑, 볼륨 마운트, 환경 변수 설정 지원
-- 컨테이너 생명주기 관리 자동화
+## Table of Contents
 
-## 시작하기
+- [Features](#features)
+- [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Quick Start](#quick-start)
+- [Configuration](#configuration)
+   - [Basic Configuration](#basic-configuration)
+   - [Advanced Configuration](#advanced-configuration)
+   - [Lifecycle Modes](#lifecycle-modes)
+   - [Examples](#configuration-examples)
+- [Event System](#event-system)
+- [Comparison with Spring Boot Docker Compose](#comparison)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
-### 의존성 추가
+## Features
 
-Gradle:
-```groovy
-dependencies {
-    implementation 'io.github.ddaakk:docker-container-spring-boot-starter:0.1.0'
-}
-```
+- **Spring Native Integration**
+   - Spring Boot auto-configuration
+   - YAML/Properties based configuration
+   - Spring profiles support
+   - Spring events integration
 
-Maven:
+- **Container Lifecycle Management**
+   - Three lifecycle modes (START_AND_STOP, START_ONLY, NONE)
+   - Automatic container cleanup
+   - Event-driven control
+   - Graceful shutdown handling
+
+- **Docker Features Support**
+   - Port mapping
+   - Volume mounting
+   - Environment variables
+   - Health checks
+   - Resource constraints
+   - Custom networks
+   - Container labels
+
+- **Development Support**
+   - Multi-container management
+   - Development/Production profiles
+   - Detailed logging
+   - Error handling
+
+## Getting Started
+
+### Prerequisites
+
+- Java 17 or higher
+- Spring Boot 3.0 or higher
+- Docker Engine installed and running
+
+### Installation
+
+#### Maven
 ```xml
 <dependency>
     <groupId>io.github.ddaakk</groupId>
@@ -33,122 +71,291 @@ Maven:
 </dependency>
 ```
 
-### 기본 설정
+#### Gradle
+```groovy
+implementation 'io.github.ddaakk:docker-container-spring-boot-starter:0.1.0'
+```
 
-application.yml:
+### Quick Start
+
+1. Add the dependency to your project
+2. Configure containers in `application.yml`:
+
 ```yaml
 docker:
-  host: unix:///var/run/docker.sock  # Docker 데몬 호스트
-  tls-verify: false                  # TLS 검증 활성화 여부
-  registry-url: https://index.docker.io/v1/  # Docker 레지스트리 URL
-  
-  # 컨테이너 설정
   containers:
-    redis:  # 컨테이너 키
+    redis:
       enabled: true
       container-name: my-redis
       image-name: redis:latest
+      lifecycle-mode: START_AND_STOP
       ports:
-        6379: 6379  # 호스트포트:컨테이너포트
-      environment:
-        REDIS_PASSWORD: mypassword
-      volumes:
-        /data/redis: /data  # 호스트경로:컨테이너경로
-
-    mysql:
-      enabled: true
-      container-name: my-mysql
-      image-name: mysql:8
-      ports:
-        3306: 3306
-      environment:
-        MYSQL_ROOT_PASSWORD: rootpass
-        MYSQL_DATABASE: mydb
-      volumes:
-        /data/mysql: /var/lib/mysql
+        6379: 6379
 ```
 
-### 프로그래밍 방식 사용
+3. Run your Spring Boot application
+
+## Configuration
+
+### Basic Configuration
+
+#### Global Docker Settings
+```yaml
+docker:
+  host: unix:///var/run/docker.sock
+  tls-verify: false
+  registry:
+    url: https://index.docker.io/v1/
+    username: username
+    password: password
+```
+
+#### Container Settings
+```yaml
+docker:
+  containers:
+    service-name:                    # Service identifier
+      enabled: true                  # Enable/disable container
+      container-name: my-container   # Container name
+      image-name: image:tag         # Docker image
+      lifecycle-mode: START_AND_STOP # Lifecycle mode
+```
+
+### Advanced Configuration
+
+#### Full Container Options
+```yaml
+docker:
+  containers:
+    service-name:
+      # Basic Settings
+      enabled: true
+      container-name: my-container
+      image-name: image:tag
+      lifecycle-mode: START_AND_STOP
+      
+      # Network
+      ports:
+        8080: 8080
+      networks:
+        - network-name
+      dns:
+        - 8.8.8.8
+      
+      # Resources
+      memory: 512M
+      cpu-shares: 1024
+      
+      # Storage
+      volumes:
+        /host/path: /container/path
+      tmpfs:
+        - /tmp
+      
+      # Environment
+      environment:
+        KEY: value
+      env-file:
+        - ./env.list
+      
+      # Runtime
+      command: ["custom", "command"]
+      entrypoint: ["custom", "entrypoint"]
+      working-dir: /app
+      
+      # Health & Monitoring
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+      
+      # Additional Settings
+      labels:
+        app: service-name
+      restart-policy:
+        name: on-failure
+        max-retry: 3
+```
+
+### Lifecycle Modes
+
+Docker Boot provides three lifecycle modes for container management:
+
+#### START_AND_STOP (Default)
+- Starts with Spring Boot application
+- Stops and removes on shutdown
+- Best for development and testing
+
+```yaml
+lifecycle-mode: START_AND_STOP
+```
+
+#### START_ONLY
+- Starts with Spring Boot application
+- Continues running after shutdown
+- Good for shared services
+
+```yaml
+lifecycle-mode: START_ONLY
+```
+
+#### NONE
+- No automatic management
+- Manual control only
+- For pre-existing containers
+
+```yaml
+lifecycle-mode: NONE
+```
+
+### Configuration Examples
+
+#### Development Database
+```yaml
+docker:
+  containers:
+    postgres:
+      enabled: true
+      container-name: postgres-dev
+      image-name: postgres:14
+      lifecycle-mode: START_AND_STOP
+      ports:
+        5432: 5432
+      environment:
+        POSTGRES_DB: devdb
+        POSTGRES_USER: dev
+        POSTGRES_PASSWORD: devpass
+      volumes:
+        postgres-data: /var/lib/postgresql/data
+```
+
+#### Production Cache
+```yaml
+docker:
+  containers:
+    redis:
+      enabled: true
+      container-name: redis-prod
+      image-name: redis:7
+      lifecycle-mode: START_ONLY
+      ports:
+        6379: 6379
+      memory: 1G
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+```
+
+## Event System
+
+### Available Events
+
+```java
+public enum Action {
+    START,   // Create and start container
+    STOP,    // Stop container
+    REMOVE   // Remove container
+}
+```
+
+### Using Events
 
 ```java
 @Service
-public class MyService {
-    private final DockerContainerManager redisManager;
+public class DockerService {
+    private final ApplicationEventPublisher eventPublisher;
     
-    public MyService(@Qualifier("redisContainerManager") DockerContainerManager redisManager) {
-        this.redisManager = redisManager;
-    }
-    
-    public void someMethod() {
-        // 컨테이너 수동 제어가 필요한 경우
-        String containerId = redisManager.createAndStart();
-        // ... 컨테이너 사용 ...
-        redisManager.stop(containerId);
-        redisManager.remove(containerId);
+    public void startContainer() {
+        eventPublisher.publishEvent(
+            new DockerContainerEvent(this, DockerContainerEvent.Action.START)
+        );
     }
 }
 ```
 
-## 설정 옵션
+### Event Handling
 
-### Docker 클라이언트 설정
+```java
+@Service
+public class ContainerManager {
+    @EventListener
+    public void handleDockerEvent(DockerContainerEvent event) {
+        switch (event.getAction()) {
+            case START -> startContainer();
+            case STOP -> stopContainer();
+            case REMOVE -> removeContainer();
+        }
+    }
+}
+```
 
-| 속성 | 설명 | 기본값 |
-|------|------|--------|
-| docker.host | Docker 데몬 호스트 URL | unix:///var/run/docker.sock |
-| docker.tls-verify | TLS 검증 활성화 여부 | false |
-| docker.registry-url | Docker 레지스트리 URL | https://index.docker.io/v1/ |
-| docker.registry-username | 레지스트리 사용자명 | |
-| docker.registry-password | 레지스트리 비밀번호 | |
+## Comparison
 
-### 컨테이너 설정
+### Docker Boot vs Spring Boot Docker Compose
 
-| 속성 | 설명 | 필수 여부 |
-|------|------|-----------|
-| enabled | 컨테이너 활성화 여부 | false |
-| container-name | 컨테이너 이름 | true |
-| image-name | 이미지 이름 (태그 포함) | true |
-| ports | 포트 매핑 (호스트:컨테이너) | false |
-| environment | 환경 변수 | false |
-| volumes | 볼륨 마운트 (호스트:컨테이너) | false |
-| command | 컨테이너 실행 명령어 | false |
-| entrypoint | 컨테이너 엔트리포인트 | false |
-| labels | 컨테이너 레이블 | false |
+| Feature | Docker Boot | Spring Boot Docker Compose |
+|---------|------------|---------------------------|
+| Configuration | Spring YAML/Properties | docker-compose.yml |
+| Container Control | Programmatic + Events | File-based |
+| Spring Integration | Native integration | Basic integration |
+| Lifecycle Modes | Three modes | Three modes |
+| Development Focus | Both dev and prod | Development focused |
 
-## 동작 원리
+### When to Choose Docker Boot
 
-1. Spring Boot 애플리케이션 시작 시:
-   - 설정된 컨테이너별로 DockerContainerManager 빈이 생성됩니다.
-   - 각 매니저는 SmartLifecycle 인터페이스를 구현하여 자동으로 컨테이너를 시작합니다.
+- Need programmatic container control
+- Want Spring-native configuration
+- Require event-based management
+- Need fine-grained lifecycle control
 
-2. 컨테이너 시작 프로세스:
-   - 동일한 이름의 기존 컨테이너 제거
-   - 이미지가 없는 경우 자동 다운로드
-   - 컨테이너 생성 및 시작
+## API Reference
 
-3. 애플리케이션 종료 시:
-   - 모든 컨테이너가 자동으로 정지 및 제거됩니다.
+### Core Interfaces
 
-## 요구사항
+#### DockerContainerManager
+```java
+public interface DockerContainerManager {
+    String createAndStart();
+    void stop(String containerId);
+    void remove(String containerId);
+}
+```
 
-- Java 17 이상
-- Spring Boot 3.0 이상
-- Docker Engine이 실행 중이어야 함
+#### Container Events
+```java
+public class DockerContainerEvent extends ApplicationEvent {
+    public enum Action {
+        START, STOP, REMOVE
+    }
+}
+```
 
-## 라이선스
+## Contributing
 
-Apache License 2.0
-
-## 기여하기
-
-버그 리포트, 기능 제안, PR은 언제나 환영합니다.
+We welcome contributions! Here's how you can help:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 작성자
+### Development Setup
+
+1. Clone the repository
+2. Install dependencies
+3. Run tests
+4. Submit changes
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## Author
 
 ddaakk - [GitHub](https://github.com/ddaakk)
+
+---
+
+© 2024 Docker Boot. All rights reserved.

@@ -9,6 +9,21 @@ import java.util.Map;
  * through Spring Boot's configuration mechanism.
  */
 public class ContainerProperties {
+    /**
+     * Enum defining lifecycle management modes for containers
+     */
+    public enum LifecycleMode {
+        /** No lifecycle management - container won't be started or stopped */
+        NONE,
+        /** Start container with application but don't stop it */
+        START_ONLY,
+        /** Full lifecycle management - start and stop with application */
+        START_AND_STOP
+    }
+
+    /** Container lifecycle management mode */
+    private LifecycleMode lifecycleMode = LifecycleMode.START_AND_STOP;
+
     /** The name of the Docker image to be used for the container */
     private String imageName;
 
@@ -174,4 +189,18 @@ public class ContainerProperties {
      * @param volumes map of host paths to container paths
      */
     public void setVolumes(Map<String, String> volumes) { this.volumes = volumes; }
+
+    /**
+     * Gets the container lifecycle management mode.
+     * @return the lifecycle mode for this container
+     */
+    public LifecycleMode getLifecycleMode() { return lifecycleMode; }
+
+    /**
+     * Sets the container lifecycle management mode.
+     * @param lifecycleMode the lifecycle mode to use
+     */
+    public void setLifecycleMode(LifecycleMode lifecycleMode) {
+        this.lifecycleMode = lifecycleMode;
+    }
 }

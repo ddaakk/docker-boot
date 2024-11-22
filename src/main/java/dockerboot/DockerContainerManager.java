@@ -3,6 +3,7 @@ package dockerboot;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.ExposedPort;
 import dockerboot.autoconfigure.ContainerProperties;
+import dockerboot.autoconfigure.ContainerProperties.LifecycleMode;
 
 /**
  * Concrete implementation of AbstractDockerContainerManager that manages Docker containers
@@ -92,5 +93,18 @@ public class DockerContainerManager extends AbstractDockerContainerManager {
         return properties.getPorts().keySet().stream()
                 .map(ExposedPort::new)
                 .toArray(ExposedPort[]::new);
+    }
+
+    @Override
+    protected LifecycleMode getLifecycleMode() {
+        return properties.getLifecycleMode();
+    }
+
+    /**
+     * Gets the current container ID.
+     * @return the ID of the currently managed container, or null if no container is running
+     */
+    public String getContainerId() {
+        return containerId.get();
     }
 }

@@ -4,9 +4,11 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
+import dockerboot.autoconfigure.ContainerProperties.LifecycleMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.event.EventListener;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -166,10 +168,16 @@ public abstract class AbstractDockerContainerManager implements DockerResourceMa
      */
     @Override
     public void start() {
+        if (getLifecycleMode() == LifecycleMode.NONE) {
+            logger.info("Lifecycle mode is NONE: Skipping start of {} container", getContainerType());
+            return;
+        }
+
         logger.info("Spring application starting: Running {} container", getContainerType());
         createAndStart();
         isRunning.set(true);
     }
+
 
     /**
      * Implementation of SmartLifecycle.stop().
@@ -177,12 +185,47 @@ public abstract class AbstractDockerContainerManager implements DockerResourceMa
      */
     @Override
     public void stop() {
+        LifecycleMode mode = getLifecycleMode();
+
+        if (mode == LifecycleMode.NONE || mode == LifecycleMode.START_ONLY) {
+            logger.info("Lifecycle mode is {}: Skipping stop of {} container",
+                    mode, getContainerType());
+            isRunning.set(false);
+            return;
+        }
+
         logger.info("Spring application stopping: Cleaning up {} container", getContainerType());
         if (containerId.get() != null) {
             stop(containerId.get());
             remove(containerId.get());
         }
         isRunning.set(false);
+    }
+
+    /**
+     * Event Listener to handle Docker container-related events.
+     * Custom application events can trigger container actions.
+     */
+    @EventListener
+    public void handleDockerEvent(DockerContainerEvent event) {
+        logger.info("Received DockerContainerEvent: {}", event);
+        switch (event.getAction()) {
+            case START:
+                createAndStart();
+                break;
+            case STOP:
+                if (containerId.get() != null) {
+                    stop(containerId.get());
+                }
+                break;
+            case REMOVE:
+                if (containerId.get() != null) {
+                    remove(containerId.get());
+                }
+                break;
+            default:
+                logger.warn("Unknown action received in DockerContainerEvent: {}", event.getAction());
+        }
     }
 
     /**
@@ -226,4 +269,10 @@ public abstract class AbstractDockerContainerManager implements DockerResourceMa
      * @return array of ExposedPort objects representing container ports to expose
      */
     protected abstract ExposedPort[] getExposedPorts();
+
+    /**
+     * Gets the lifecycle mode for this container.
+     * @return the configured lifecycle mode
+     */
+    protected abstract LifecycleMode getLifecycleMode();
 }
