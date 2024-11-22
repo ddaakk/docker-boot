@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 <p align="center">
-  <a href="/README.md">English</a> |
+  <strong>English</strong> |
   <a href="/README_ko.md">한국어</a>
 </p>
 
