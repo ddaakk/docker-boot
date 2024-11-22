@@ -57,12 +57,12 @@ mavenPublishing {
     pom {
         name = 'docker-boot'
         description = 'SpringBoot Docker Manager'
-        url = '<https://github.com/ddaakk/docker-boots>'
+        url = '<https://github.com/ddaakk/docker-boot>'
 
         licenses {
             license {
                 name = 'Apache License'
-                url = '<https://github.com/dami325/excel-utils/blob/master/LICENSE>'
+                url = '<https://github.com/ddaakk/docker-boot/LICENSE>'
             }
         }
 
