@@ -67,13 +67,13 @@ Docker Boot provides seamless integration between Docker containers and Spring B
 <dependency>
     <groupId>io.github.ddaakk</groupId>
     <artifactId>docker-container-spring-boot-starter</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
 #### Gradle
 ```groovy
-implementation 'io.github.ddaakk:docker-container-spring-boot-starter:0.1.0'
+implementation 'io.github.ddaakk:docker-container-spring-boot-starter:0.2.0'
 ```
 
 ### Quick Start
