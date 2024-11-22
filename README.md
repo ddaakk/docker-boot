@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="/README.md">English</a> |
-  <a href="/README_ko.md">한국어</a> |
+  <a href="/README_ko.md">한국어</a>
 </p>
 
 Docker Boot provides seamless integration between Docker containers and Spring Boot applications. It allows you to manage Docker container lifecycles through Spring configuration and programmatic controls.
